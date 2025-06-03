@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Export Orders</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    input[type="number"] {
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="section">
+    <h1>Export All Orders</h1>
+    <button id="export-all-btn">Download All Orders</button>
+  </div>
+
+  <div class="section">
+    <h1>Export Specific Order</h1>
+    <label for="order-id">Order ID:</label>
+    <input type="number" id="order-id" placeholder="Enter order ID..." />
+    <button id="export-single-btn">Download This Order</button>
+  </div>
+
+  <script>
+    function downloadBlob(blob, filename) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    }
+
+    async function exportOrders(orderId = null) {
+      const endpoint = orderId ? `/export-orders?orderId=${orderId}` : '/export-orders';
+
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          alert('Failed to export order(s).');
+          return;
+        }
+
+        const blob = await response.blob();
+        const filename = orderId ? `shopify_order_${orderId}.csv` : 'shopify_orders.csv';
+        downloadBlob(blob, filename);
+      } catch (error) {
+        alert('An error occurred while exporting order(s).');
+        console.error(error);
+      }
+    }
+
+    document.getElementById('export-all-btn').addEventListener('click', () => {
+      exportOrders();
+    });
+
+    document.getElementById('export-single-btn').addEventListener('click', () => {
+      const orderId = document.getElementById("order-id").value.trim();
+      if (!orderId) {
+        alert("Please enter a valid Order ID.");
+        return;
+      }
+      exportOrders(orderId);
+    });
+  </script>
+</body>
+
+</html>
